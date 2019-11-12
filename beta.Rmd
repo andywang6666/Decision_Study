@@ -1,0 +1,75 @@
+---
+title: "Untitled"
+author: "Liyan Tang"
+date: "11/5/2019"
+output: html_document
+---
+
+```{r}
+file_name = list.files(path='/Users/apple/Desktop/RA/RA Sharon/Project/data')
+```
+
+```{r}
+file_name
+```
+
+
+```{r}
+betas_tt = rep(0, 31)
+betas_rw = rep(0, 31)
+betas_ttrw = rep(0, 31)
+```
+
+
+```{r}
+choice1 = data$choice1 == 1
+choice2 = !choice1
+state2 = data$state == 2
+state3 = !state2
+state = (choice1 & state2) | (choice2 & state3)
+```
+
+
+```{r}
+usecols = c('trial', 'choice1', 'state', 'age', 'won')
+
+for (i in 1:31) {
+  name = paste("/Users/apple/Desktop/RA/RA Sharon/Project/data/", file_name[i], sep='')
+  file = read.csv(name, sep='\t')
+  data = file[usecols]
+  
+  tt = state[1:dim(data)[1]-1] + 0
+  rw = data$won[2:dim(data)[1]]
+  y = state[2:dim(data)[1]] + 0
+  
+  frame = data.frame('tt'=tt, 'rw'=rw, 'y'=y)
+  frame = na.omit(frame)
+  
+  model = glm(data=frame, y ~ tt * rw, family = binomial)
+  betas_tt[i] = summary(model)$coefficients[14]
+  betas_rw[i] = summary(model)$coefficients[15]
+  betas_ttrw[i] = summary(model)$coefficients[16]
+}
+```
+
+```{r}
+betas_tt
+```
+4, 7, 25, 28
+
+```{r}
+betas_rw
+```
+16
+
+
+```{r}
+betas_ttrw
+```
+2, 16, 25
+
+
+
+
+
+
