@@ -5,69 +5,78 @@ date: "11/5/2019"
 output: html_document
 ---
 
+
 ```{r}
-file_name = list.files(path='/Users/apple/Desktop/RA/RA Sharon/Project/data')
+file_name = list.files(path='Data')
+# Drop 22nd particapant (106). Bad data: only picked first spaceship
+file_name = file_name[-22]
+length(file_name)
 ```
+
 
 ```{r}
 file_name
+
+participant_id = rep(0, 30)
+for (i in 1:length(file_name))
+  participant_id[i] = substring(file_name[i], 3, 7)
+participant_id
 ```
 
 
 ```{r}
-betas_tt = rep(0, 31)
-betas_rw = rep(0, 31)
-betas_ttrw = rep(0, 31)
-```
+age = c(74, 75, 67, 70, 80, 70, 67, 73, 74, 72, 76, 71, 70, 69, 68, 73, 73, 70, 66, 67, 86, 73, 66, 69, 75, 72, 75, 71, 61, 69, 70)
+age = age[-22]
+length(age)
 
+betas_tt = rep(0, 30)
+betas_r = rep(0, 30)
+betas_int = rep(0, 30)
 
-```{r}
-choice1 = data$choice1 == 1
-choice2 = !choice1
-state2 = data$state == 2
-state3 = !state2
-state = (choice1 & state2) | (choice2 & state3)
+pvals_tt = rep(0, 30)
+pvals_r = rep(0, 30)
+pvals_int = rep(0, 30)
 ```
 
 
 ```{r}
 usecols = c('trial', 'choice1', 'state', 'age', 'won')
 
-for (i in 1:31) {
-  name = paste("/Users/apple/Desktop/RA/RA Sharon/Project/data/", file_name[i], sep='')
+for (i in 1:30) {
+  name = paste("Data/", file_name[i], sep='')
   file = read.csv(name, sep='\t')
   data = file[usecols]
+  
+  choice1 = data$choice1 == 1
+  choice2 = !choice1
+  state2 = data$state == 2
+  state3 = !state2
+  state = (choice1 & state2) | (choice2 & state3)
   
   tt = state[1:dim(data)[1]-1] + 0
   rw = data$won[2:dim(data)[1]]
   y = state[2:dim(data)[1]] + 0
   
   frame = data.frame('tt'=tt, 'rw'=rw, 'y'=y)
-  frame = na.omit(frame)
   
   model = glm(data=frame, y ~ tt * rw, family = binomial)
-  betas_tt[i] = summary(model)$coefficients[14]
-  betas_rw[i] = summary(model)$coefficients[15]
-  betas_ttrw[i] = summary(model)$coefficients[16]
+  
+  betas_tt[i] = summary(model)$coefficients[2]
+  betas_r[i] = summary(model)$coefficients[3]
+  betas_int[i] = summary(model)$coefficients[4]
+  
+  pvals_tt[i] = summary(model)$coefficients[14]
+  pvals_r[i] = summary(model)$coefficients[15]
+  pvals_int[i] = summary(model)$coefficients[16]
 }
 ```
 
-```{r}
-betas_tt
-```
-4, 7, 25, 28
 
 ```{r}
-betas_rw
+betas_file = data.frame('ID'=participant_id, 'Age'=age, 'TT_Betas'=betas_tt, 'TT_Pvals'=pvals_tt, 'R_Betas'=betas_r, 'R_Pvals'=pvals_r, 'Inter_Betas'=betas_int, 'Inter_Pvals'=pvals_int)
+
+write.table(betas_file, 'Participant_Betas_R.csv', sep=',', row.names=FALSE)
 ```
-16
-
-
-```{r}
-betas_ttrw
-```
-2, 16, 25
-
 
 
 
